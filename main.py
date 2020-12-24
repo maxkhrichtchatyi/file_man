@@ -34,6 +34,17 @@ class FileMan:
         except FileNotFoundError as err:
             print("No such file or directory:", err.filename)
 
+    def write(self):
+        path = input("Enter the path of file to write or create")
+        if os.path.isfile(path):
+            print("Rebuilding the executing file")
+        else:
+            print("Creating the file")
+
+        text = input("Enter text:")
+        with open(path, "w") as w_file:
+            w_file.write(text)
+
     def __init__(self):
         self._run = True
 
@@ -52,6 +63,8 @@ class FileMan:
 
             if dec == 1:
                 self.read()
+            elif dec == 2:
+                self.write()
 
             try:
                 self._run = int(input("\n".join(self.STEP_MENU)))
