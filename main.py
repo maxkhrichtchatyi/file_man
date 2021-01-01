@@ -3,6 +3,11 @@ import os
 import time
 import subprocess
 
+from rich import print
+from rich.console import Console
+from rich.syntax import Syntax
+from rich.table import Table
+
 
 class FileMan:
     MENU = [
@@ -25,17 +30,28 @@ class FileMan:
         "2. Exit",
     ]
 
+    def _make_menu(self, options):
+        self._console.clear()
+        table = Table(show_header=True, header_style="bold yellow")
+        table.add_column("Number", style="dim", width=12)
+        table.add_column("Description")
+
+        for item in options:
+            table.add_row(*item.split("."))
+        self._console.print(table)
+
     def read(self):
-        path = input("Enter the file path ro read:\n")
+        path = input("Enter the file path ro read: ")
         try:
             with open(path, "r") as r_file:
-                print(r_file.read())
+                syntax = Syntax(r_file.read(), "python", theme="monokai", line_numbers=True)
+                self._console.print(syntax)
                 input("Press Enter")
         except FileNotFoundError as err:
             print("No such file or directory:", err.filename)
 
     def write(self):
-        path = input("Enter the path of file to write or create")
+        path = input("Enter the path of file to write or create:\n")
         if os.path.isfile(path):
             print("Rebuilding the executing file")
         else:
@@ -45,18 +61,25 @@ class FileMan:
         with open(path, "w") as w_file:
             w_file.write(text)
 
+    def delete(self):
+        path = input("Enter the path of file for deletion:\n")
+        if os.path.exists(path):
+            self._console.print("File Found")
+            os.remove(path)
+            self._console.print("File has been deleted")
+        else:
+            self._console.print("File not found")
+
     def __init__(self):
         self._run = True
+        self._console = Console()
 
     def __call__(self, *args, **kwargs):
         while self._run:
-            try:
-                os.system("clear")
-            except OSError:
-                os.system("cls")
+            self._make_menu(self.MENU)
 
             try:
-                dec = int(input("\n".join(self.MENU)))
+                dec = int(input("Enter a number: "))
             except ValueError:
                 print("Please input integer only...")
                 continue
@@ -65,9 +88,13 @@ class FileMan:
                 self.read()
             elif dec == 2:
                 self.write()
+            elif dec == 3:
+                self.delete()
+
+            self._make_menu(self.STEP_MENU)
 
             try:
-                self._run = int(input("\n".join(self.STEP_MENU)))
+                self._run = int(input("Enter a number: "))
             except ValueError:
                 print("Please input integer only...")
                 continue
