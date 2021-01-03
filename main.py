@@ -30,7 +30,18 @@ class FileMan:
         "2. Exit",
     ]
 
-    def _make_menu(self, options):
+    def _make_msg(self, title, text, msg_type="warning"):
+        _msg_type = "bold red"
+        if msg_type == "attention":
+            _msg_type = "bold yellow"
+        table = Table(show_header=True, header_style=_msg_type)
+        table.add_column(title)
+        table.add_row(text)
+        self._console.print(table)
+
+    def _make_menu(self, options, first_run=False):
+        if not first_run:
+            input("Press Enter")
         self._console.clear()
         table = Table(show_header=True, header_style="bold yellow")
         table.add_column("Number", style="dim", width=12)
@@ -48,14 +59,14 @@ class FileMan:
                 self._console.print(syntax)
                 input("Press Enter")
         except FileNotFoundError as err:
-            print("No such file or directory:", err.filename)
+            self._make_msg(title="Warning!", text="No such file or directory: " + err.filename)
 
     def write(self):
         path = input("Enter the path of file to write or create:\n")
         if os.path.isfile(path):
-            print("Rebuilding the executing file")
+            self._make_msg(title="Attention!", text="Rebuilding the executing file", msg_type="attention")
         else:
-            print("Creating the file")
+            self._make_msg(title="Attention!", text="Creating the file", msg_type="attention")
 
         text = input("Enter text:")
         with open(path, "w") as w_file:
@@ -70,13 +81,21 @@ class FileMan:
         else:
             self._console.print("File not found")
 
+    def dirlist(self):
+        path = input("Enter the Directory path to display:\n")
+        if os.path.exists(path):
+            for item in sorted(os.listdir(path)):
+                self._console.print(item)
+        else:
+            self._console.print("Directory not found")
+
     def __init__(self):
         self._run = True
         self._console = Console()
 
     def __call__(self, *args, **kwargs):
         while self._run:
-            self._make_menu(self.MENU)
+            self._make_menu(self.MENU, first_run=True)
 
             try:
                 dec = int(input("Enter a number: "))
@@ -90,6 +109,8 @@ class FileMan:
                 self.write()
             elif dec == 3:
                 self.delete()
+            elif dec == 5:
+                self.dirlist()
 
             self._make_menu(self.STEP_MENU)
 
@@ -104,4 +125,8 @@ class FileMan:
 
 
 file_man = FileMan()
-file_man()
+
+try:
+    file_man()
+except KeyboardInterrupt:
+    exit()
